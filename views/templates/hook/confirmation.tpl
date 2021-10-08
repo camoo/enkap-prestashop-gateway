@@ -24,19 +24,26 @@
 *}
 
 {if (isset($status) == true) && ($status == 'ok')}
-<h3>{l s='Your order on %s is complete.' sprintf=$shop_name mod='e_nkap'}</h3>
+<h3>{l s='Your order on %s is complete.' sprintf=[$shop_name] d='Modules.E_nkap.Shop'}</h3>
+<p class="alert alert-success">
+    <strong>{l s='Your E-Nkap payment is saved and waiting for our partner confirmation' mod='izips_mobilemoney'}</strong>
+</p>
 <p>
-	<br />- {l s='Amount' mod='e_nkap'} : <span class="price"><strong>{$total|escape:'htmlall':'UTF-8'}</strong></span>
-	<br />- {l s='Reference' mod='e_nkap'} : <span class="reference"><strong>{$reference|escape:'html':'UTF-8'}</strong></span>
-	<br /><br />{l s='An email has been sent with this information.' mod='e_nkap'}
-	<br /><br />{l s='If you have questions, comments or concerns, please contact our' mod='e_nkap'} <a href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='expert customer support team.' mod='e_nkap'}</a>
+    <dl>
+        <dt>{l s='Amount' d='Modules.E_nkap.Shop'}</dt>
+        <dd><span class="price"><strong>{$total|escape:'htmlall':'UTF-8'}</strong></span></dd>
+        <dt>{l s='Reference' d='Modules.E_nkap.Shop'}</dt>
+        <dd><span class="reference"><strong>{$reference|escape:'html':'UTF-8'}</strong></span></dd>
+    </dl>
+    {l s='An email has been sent with this information.' d='Modules.E_nkap.Shop'}
+    <br /><br />{l s='If you have questions, comments or concerns, please contact our' d='Modules.E_nkap.Shop'} <a href="{$urls.pages.contact}">{l s='expert customer support team.' d='Modules.E_nkap.Shop'}</a>
 </p>
 {else}
-<h3>{l s='Your order on %s has not been accepted.' sprintf=$shop_name mod='e_nkap'}</h3>
+<h3>{l s='Your order on %s has not been accepted.' sprintf=[$shop_name] d='Modules.E_nkap.Shop'}</h3>
 <p>
-	<br />- {l s='Reference' mod='e_nkap'} <span class="reference"> <strong>{$reference|escape:'html':'UTF-8'}</strong></span>
-	<br /><br />{l s='Please, try to order again.' mod='e_nkap'}
-	<br /><br />{l s='If you have questions, comments or concerns, please contact our' mod='e_nkap'} <a href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='expert customer support team.' mod='e_nkap'}</a>
+	<br />- {l s='Reference' d='Modules.E_nkap.Shop'} <span class="reference"> <strong>{$reference|escape:'html':'UTF-8'}</strong></span>
+	<br /><br />{l s='Please, try to order again.' d='Modules.E_nkap.Shop'}
+	<br /><br />{l s='If you have questions, comments or concerns, please contact our' d='Modules.E_nkap.Shop'} <a href="{$urls.pages.contact}">{l s='expert customer support team.' d='Modules.E_nkap.Shop'}</a>
 </p>
 {/if}
 <hr />

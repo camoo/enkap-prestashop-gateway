@@ -1,8 +1,4 @@
 <?php
-
-use Enkap\OAuth\Services\OrderService;
-use Enkap\OAuth\Model\Order as EnkapOrder;
-
 /**
 * 2007-2021 PrestaShop
 *
@@ -31,8 +27,55 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        if ($this->module->active === false) {
+        if ($this->module->active == false) {
             die;
+        }
+        if ( Tools::isSubmit('checkPayment') && ($merchant_reference_id = Tools::getValue('order_ref')) ) {
+            $payment = ENkapPaymentCart::getByMerchantReference($merchant_reference_id);
+            
+            if ($payment && is_array($payment)) {
+                $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
+                $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
+                
+                $statusService = new \Enkap\OAuth\Services\StatusService($_key, $_secret);
+                $status = $statusService->getByTransactionId($payment['order_transaction_id']);
+                
+                if ($status && is_object($status)) {
+                    $id_order_state = false;
+                    $message = null;
+                    $extra_vars = array('transaction_id' => $payment['order_transaction_id']);
+                    $order = new Order( (int)$payment['id_order'] );
+                    
+                    if ( $status->confirmed() ) {
+                        $id_order_state = (int)Configuration::get('PS_OS_E_NKAP_ACCEPTED');
+                    } elseif ( $status->initialized() || $status->isInProgress() ) {
+                        $id_order_state = (int)Configuration::get('PS_OS_E_NKAP');
+                    } elseif ( $status->failed() ) {
+                        $id_order_state = (int)Configuration::get('PS_OS_ERROR');
+                    } elseif ( $status->canceled() ) {
+                        $id_order_state = (int)Configuration::get('PS_OS_CANCELED');
+                    }
+                    
+                    if ( $id_order_state && $id_order_state != $order->getCurrentOrderState()->id ) {
+                        $new_history = new OrderHistory();
+                        $new_history->id_order = (int) $order->id;
+                        $new_history->changeIdOrderState((int) $id_order_state, $order, true);
+                        $new_history->addWithemail(true, $extra_vars);
+                        
+                        if ( isset($extra_vars['transaction_id']) && $extra_vars['transaction_id'] ) {
+                            $order_payments = OrderPayment::getByOrderReference($order->reference);
+                            foreach ($order_payments as $p) {
+                                if ($this->module->displayName == $p->payment_method) {
+                                    $p->transaction_id = $extra_vars['transaction_id'];
+                                    $p->update();
+                                }
+                            }
+                        }
+                    }
+                    die($status->getCurrent());
+                }
+            }
+            die (Tools::displayError('Unable to update status'));
         }
         
         $authorized = false;
@@ -49,7 +92,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
 
         $cart = $this->context->cart;
         $cart_id = (int)$cart->id;
-        $amount = (float)$cart->getOrderTotal();
+        $amount = (float)$cart->getOrderTotal(true, Cart::BOTH);
         $customer = new Customer($cart->id_customer);
 
         $secure_key = $customer->secure_key;
@@ -57,8 +100,8 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
             die($this->trans('Invalid Customer key.', array(), 'Modules.E_nkap.Shop'));
         }
 
-        Context::getContext()->currency = new Currency(Context::getContext()->cart->id_currency);
-        Context::getContext()->language = new Language(Context::getContext()->customer->id_lang);
+        Context::getContext()->currency = new Currency((int) Context::getContext()->cart->id_currency);
+        Context::getContext()->language = new Language((int) Context::getContext()->customer->id_lang);
         
         $merchantReferenceId = $this->module->generateReferenceID();
         $dataData = [
@@ -84,28 +127,32 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
         $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
         $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
         try {
-            $orderService = new OrderService($_key, $_secret);
-            $order = $orderService->loadModel(EnkapOrder::class);
+            $orderService = new \Enkap\OAuth\Services\OrderService($_key, $_secret);
+            $order = $orderService->loadModel(\Enkap\OAuth\Model\Order::class);
             $order->fromStringArray($dataData);
             $response = $orderService->place($order);
             
             $payment_status = (int)Configuration::get('PS_OS_E_NKAP');
             $module_name = $this->module->displayName;
-            $this->module->validateOrder($cart_id, $payment_status, $amount, $module_name, '', [],
-                Context::getContext()->cart->id_currency, false, $secure_key);
-            $this->logEnkapPayment($cart_id, (int)$this->module->currentOrder, $merchantReferenceId, $response->getOrderTransactionId());
+            $message = 'E-Nkap order created #'.$response->getOrderTransactionId();
+            $this->module->validateOrder($cart_id, $payment_status, $amount, $module_name, $message, array('transaction_id'=>$response->getOrderTransactionId()), (int) Context::getContext()->cart->id_currency, false, $secure_key);
+            $this->logEnkapPayment($cart_id, (int)$this->module->currentOrder, $merchantReferenceId, $response->getOrderTransactionId(), $amount);
             Tools::redirect($response->getRedirectUrl());
-        } catch (Throwable $exception) {
-            die('E-Nkap Payment Error: ' . $exception->getMessage());
+        } catch (Throwable $e) {
+            die(Tools::displayError('E-Nkap Payment Error: ' . $e->getMessage()));
         }
     }
     
-    protected function logEnkapPayment(int $cartId, $orderId, string $merchantReferenceId, string $orderTransactionId)
+    protected function logEnkapPayment(int $cartId, $orderId, string $merchantReferenceId, string $orderTransactionId, $amount = 0.0, $status = 'Pending')
     {
-        $e_nkap_payment = new ENkapPaymentCart(ENkapPaymentCart::getIdByIdCart($cartId));
+        $e_nkap_payment = new ENkapPaymentCart((int)ENkapPaymentCart::getIdByIdCart($cartId));
         $e_nkap_payment->id_cart = $cartId;
         $e_nkap_payment->id_order = $orderId;
         $e_nkap_payment->merchant_reference_id = $merchantReferenceId;
         $e_nkap_payment->order_transaction_id = $orderTransactionId;
+        $e_nkap_payment->order_total = $amount;
+        $e_nkap_payment->status = $status;
+        $e_nkap_payment->date_status = date('Y-m-d H:i:s');
+        $e_nkap_payment->save();
     }
 }

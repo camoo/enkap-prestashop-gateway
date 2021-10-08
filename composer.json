@@ -1,0 +1,33 @@
+{
+    "name": "camoo/enkap-prestashop-gateway",
+    "description": "Enkap - Mobile Money Gateway for Prestashop",
+    "type": "prestashop-module",
+    "require": {
+        "php": ">=7.3",
+        "camoo/enkap-oauth": "^1.0"
+    },
+    "minimum-stability": "dev",
+    "homepage": "https://camoo.cm",
+    "license": "GPL-2.0-or-later",
+    "prefer-stable" : true,
+    "authors": [
+        {
+            "name": "CAMOO SARL",
+            "email": "ecommerce@camoo.sarl"
+        }
+    ],
+    "keywords": [
+        "CAMOO",
+        "Mobile money Gateway Cameroon",
+        "Plugin camoo Pay",
+        "MTN Cameroon Mobile Money",
+        "ORANGE Cameroon Mobile Money",
+        "Express Union Cameroon Mobile Money",
+        "Smobil Cash pay",
+        "enkap"
+    ],
+    "support": {
+        "issues": "https://github.com/camoo/enkap-prestashop-gateway/issues",
+        "source": "https://github.com/camoo/enkap-prestashop-gateway"
+    }
+}
