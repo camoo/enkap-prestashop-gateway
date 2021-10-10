@@ -528,7 +528,7 @@ class E_nkap extends PaymentModule
 
     public function hookDisplayAdminOrderLeft($aParams)
     {
-        return hookDisplayAdminOrderMain($aParams);
+        return $this->hookDisplayAdminOrderMain($aParams);
     }
 
     public function hookDisplayAdminOrderMain($aParams)
@@ -543,7 +543,11 @@ class E_nkap extends PaymentModule
             $this->context->smarty->assign(
                 array(
                     'en_payment' => $en_payment,
-                    'link' => $this->context->link->getModuleLink($this->name, 'validation', array('checkPayment' => 1, 'order_ref' => $en_payment['merchant_reference_id']), true))
+                    'link' => $this->context->link->getModuleLink($this->name, 'validation',
+                        [
+                            'checkPayment' => 1,
+                            'order_ref' => $en_payment['merchant_reference_id']
+                        ], true))
             );
             return $this->fetch('module:' . $this->name . '/views/templates/hook/admin-order.tpl');
         }
@@ -575,7 +579,7 @@ class E_nkap extends PaymentModule
 
     public function hookDisplayPaymentReturn($params)
     {
-        if ($this->active == false || !isset($params['order'])) {
+        if ($this->active === false || !isset($params['order'])) {
             return;
         }
 
