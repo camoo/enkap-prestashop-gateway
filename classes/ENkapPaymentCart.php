@@ -72,9 +72,31 @@ class ENkapPaymentCart extends ObjectModel
             $setData['remote_ip'] = Tools::safeOutput($remoteIp);
         }
         return Db::getInstance()->update(
-             self::$definition['table'],
+            self::$definition['table'],
             $setData,
-            "order_transaction_id = '".Tools::safeOutput($transactionId)."'"
+            "order_transaction_id = '" . Tools::safeOutput($transactionId) . "'"
+        );
+    }
+
+    public static function logPayment(
+        int $orderId,
+        int $cartId,
+        string $merchantReferenceId,
+        string $orderTransactionId,
+        $amount
+    ): bool
+    {
+        $insertData = [
+            'id_cart' => $cartId,
+            'id_order' => $orderId,
+            'order_transaction_id' => Tools::safeOutput($orderTransactionId),
+            'merchant_reference_id' => Tools::safeOutput($merchantReferenceId),
+            'order_total' => $amount
+        ];
+
+        return Db::getInstance()->insert(
+            self::$definition['table'],
+            $insertData
         );
     }
 }

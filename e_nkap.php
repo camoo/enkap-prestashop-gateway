@@ -57,7 +57,7 @@ class E_nkap extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         parent::__construct();
-       // $this->installDb();
+        // $this->installDb();
 
         $this->displayName = $this->l('E-Nkap payment');
         $this->description = $this->l('E-Nkap payment for Prestashop');
@@ -376,11 +376,14 @@ class E_nkap extends PaymentModule
         foreach (array_keys($form_values) as $key) {
             Configuration::updateValue($key, Tools::getValue($key));
         }
-        $this->setReturnUrls();
-        return $this->displayConfirmation($this->l('Settings updated successfully!'));
+        if ($this->setReturnUrls()) {
+
+            return $this->displayConfirmation($this->l('Settings updated successfully!'));
+        }
+        return $this->displayError($this->l('Keys could not be setup properly. Please make sure that your Consumers keys pairs are valid'));
     }
 
-    protected function setReturnUrls()
+    protected function setReturnUrls(): bool
     {
         $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
         $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
@@ -392,10 +395,11 @@ class E_nkap extends PaymentModule
             $callBack = $setup->loadModel(CallbackUrl::class);
             $callBack->return_url = $this->getReturnUrl();
             $callBack->notification_url = $this->getNotificationUrl();
-            $setup->set($callBack);
+            $result = $setup->set($callBack);
         } catch (Exception $exception) {
-            echo $exception->getTraceAsString();
+            return false;
         }
+        return $result;
     }
 
     public function hookPaymentReturn($params)
