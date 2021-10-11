@@ -1,4 +1,8 @@
 <?php
+
+use Enkap\OAuth\Services\OrderService;
+use Enkap\OAuth\Services\StatusService;
+
 /**
 * 2007-2021 PrestaShop
 *
@@ -27,7 +31,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        if ($this->module->active == false) {
+        if ($this->module->active === false) {
             die;
         }
         if ( Tools::isSubmit('checkPayment') && ($merchant_reference_id = Tools::getValue('order_ref')) ) {
@@ -36,13 +40,13 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
             if ($payment && is_array($payment)) {
                 $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
                 $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
+                $isTestMode = !empty(Configuration::get('E_NKAP_LIVE_MODE'));
                 
-                $statusService = new \Enkap\OAuth\Services\StatusService($_key, $_secret);
+                $statusService = new StatusService($_key, $_secret, [], $isTestMode);
                 $status = $statusService->getByTransactionId($payment['order_transaction_id']);
                 
                 if ($status && is_object($status)) {
                     $id_order_state = false;
-                    $message = null;
                     $extra_vars = array('transaction_id' => $payment['order_transaction_id']);
                     $order = new Order( (int)$payment['id_order'] );
                     
@@ -56,7 +60,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
                         $id_order_state = (int)Configuration::get('PS_OS_CANCELED');
                     }
                     
-                    if ( $id_order_state && $id_order_state != $order->getCurrentOrderState()->id ) {
+                    if ( $id_order_state && $id_order_state !== $order->getCurrentOrderState()->id ) {
                         $new_history = new OrderHistory();
                         $new_history->id_order = (int) $order->id;
                         $new_history->changeIdOrderState((int) $id_order_state, $order, true);
@@ -97,7 +101,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
 
         $secure_key = $customer->secure_key;
         if ( $secure_key != Context::getContext()->customer->secure_key ) {
-            die($this->trans('Invalid Customer key.', array(), 'Modules.E_nkap.Shop'));
+            die($this->trans('Invalid Customer key.', [], 'Modules.E_nkap.Shop'));
         }
 
         Context::getContext()->currency = new Currency((int) Context::getContext()->cart->id_currency);
@@ -111,6 +115,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
             'totalAmount' => $amount,
             'description' => sprintf('Payment from %s', $this->context->shop->name),
             'currency' => $this->module->getApiCurrency(),
+            'langKey' => $this->module->getLanguageKey(Context::getContext()->customer->id_lang),
             'items' => []
         ];
         
@@ -120,14 +125,16 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
                 'itemId' => (int)$item['id_product'],
                 'particulars' => $item['name'],
                 'unitCost' => (float)$item['price'],
+                'subTotal' => (float)$item['price'],
                 'quantity' => $item['cart_quantity']
             ];
         }
         
         $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
         $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
+        $isTestMode = !empty(Configuration::get('E_NKAP_LIVE_MODE'));
         try {
-            $orderService = new \Enkap\OAuth\Services\OrderService($_key, $_secret);
+            $orderService = new OrderService($_key, $_secret, [], $isTestMode);
             $order = $orderService->loadModel(\Enkap\OAuth\Model\Order::class);
             $order->fromStringArray($dataData);
             $response = $orderService->place($order);
@@ -143,7 +150,13 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
         }
     }
     
-    protected function logEnkapPayment(int $cartId, $orderId, string $merchantReferenceId, string $orderTransactionId, $amount = 0.0, $status = 'Pending')
+    protected function logEnkapPayment(
+        int $cartId, $orderId,
+        string $merchantReferenceId,
+        string $orderTransactionId,
+        $amount = 0.0,
+        $status = 'Pending'
+    )
     {
         $e_nkap_payment = new ENkapPaymentCart((int)ENkapPaymentCart::getIdByIdCart($cartId));
         $e_nkap_payment->id_cart = $cartId;
@@ -152,7 +165,6 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
         $e_nkap_payment->order_transaction_id = $orderTransactionId;
         $e_nkap_payment->order_total = $amount;
         $e_nkap_payment->status = $status;
-        $e_nkap_payment->date_status = date('Y-m-d H:i:s');
         $e_nkap_payment->save();
     }
 }

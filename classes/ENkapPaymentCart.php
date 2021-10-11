@@ -42,6 +42,7 @@ class ENkapPaymentCart extends ObjectModel
             'date_status' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
             'date_add' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
             'date_upd' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
+            'remote_ip' => array('type' => self::TYPE_STRING, 'required' => false),
         ),
     );
 
@@ -58,5 +59,22 @@ class ENkapPaymentCart extends ObjectModel
     public static function getByMerchantReference($merchant_reference_id)
     {
         return Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . self::$definition['table'] . '` WHERE `merchant_reference_id` = "' . $merchant_reference_id . '"');
+    }
+
+    public static function applyStatusChange(string $status, string $transactionId): bool
+    {
+        $remoteIp = Tools::getRemoteAddr();
+        $setData = [
+            'status_date' => date('Y-m-d H:i:s'),
+            'status' => Tools::safeOutput($status)
+        ];
+        if ($remoteIp) {
+            $setData['remote_ip'] = Tools::safeOutput($remoteIp);
+        }
+        return Db::getInstance()->update(
+             self::$definition['table'],
+            $setData,
+            "order_transaction_id = '".Tools::safeOutput($transactionId)."'"
+        );
     }
 }

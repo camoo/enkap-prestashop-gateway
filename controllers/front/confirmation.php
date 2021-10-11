@@ -32,13 +32,13 @@ class E_nkapConfirmationModuleFrontController extends ModuleFrontController
         }
         $merchant_reference_id = Tools::getValue('order_ref');
         $en_payment = ENkapPaymentCart::getByMerchantReference($merchant_reference_id);
-        if ($en_payment && is_array($en_payment) && !empty($en_payment)) {
+        if (!empty($en_payment) && is_array($en_payment)) {
             $cart = new Cart((int)$en_payment['id_cart']);
             $customer = new Customer($cart->id_customer);
             Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$en_payment['id_cart'] . '&id_module=' . $this->module->id . '&id_order=' . (int)$en_payment['id_order'] . '&key=' . $customer->secure_key);
         } else {
             echo Tools::displayError('E-Nkap payment not found on local shop');
-            die;
         }
+        exit;
     }
 }

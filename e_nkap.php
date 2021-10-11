@@ -47,28 +47,40 @@ class E_nkap extends PaymentModule
         $this->version = '1.0.0';
         $this->author = 'Camoo Sarl';
 
-        $this->controllers = array('confirmation', 'validation', 'notification');
+        $this->controllers = ['confirmation', 'validation', 'notification'];
         $this->need_instance = 0;
 
         $this->bootstrap = true;
         $this->currencies = true;
-        $this->limited_currencies = array('XAF', 'EUR');
-        $this->limited_countries = array('CM');
+        $this->limited_currencies = ['XAF'];
+        $this->limited_countries = ['CM'];
         $this->currencies_mode = 'checkbox';
 
         parent::__construct();
-        $this->installDb();
+       // $this->installDb();
 
         $this->displayName = $this->l('E-Nkap payment');
         $this->description = $this->l('E-Nkap payment for Prestashop');
 
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
         require_once dirname(__FILE__) . '/classes/ENkapPaymentCart.php';
     }
 
-    public function getApiCurrency()
+    public function getApiCurrency(): string
     {
         return $this->api_currency;
+    }
+
+    public function getLanguageKey($langId): string
+    {
+
+        $iso_code = Language::getIsoById($langId);
+
+        if (empty($iso_code)) {
+            return 'fr';
+        }
+
+        return in_array($iso_code, ['fr', 'en']) ? $iso_code : 'en';
     }
 
     public function install()
@@ -114,6 +126,7 @@ class E_nkap extends PaymentModule
                 `date_status` datetime      NOT NULL DEFAULT \'2021-05-20 00:00:00\',
                 `date_upd`            timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 `date_add`            timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `remote_ip`           varbinary(64) NOT NULL DEFAULT \'0.0.0.0\',
                 PRIMARY KEY (`id_enkap_payment`)
             ) DEFAULT CHARSET=utf8 ;');
     }
@@ -122,6 +135,7 @@ class E_nkap extends PaymentModule
     {
         Configuration::deleteByName('E_NKAP_LIVE_MODE');
 
+        Db::getInstance()->execute('DROP TABLE `' . _DB_PREFIX_ . 'e_nkap_payments` IF EXISTS;');
         return parent::uninstall();
     }
 
@@ -262,7 +276,7 @@ class E_nkap extends PaymentModule
         }
     }
 
-    public function getContent()
+    public function getContent(): string
     {
         if (((bool)Tools::isSubmit('submitE_nkapModule')) === true) {
             $this->_html .= $this->postProcess();
@@ -271,7 +285,7 @@ class E_nkap extends PaymentModule
         return $this->_html;
     }
 
-    protected function renderForm()
+    protected function renderForm(): string
     {
         $helper = new HelperForm();
 
@@ -327,7 +341,7 @@ class E_nkap extends PaymentModule
                     array(
                         'col' => 3,
                         'type' => 'text',
-                        'desc' => $this->l('Enter a valid Consumer Secret from enkap platform'),
+                        'desc' => $this->l('Enter a valid Consumer Key from enkap platform'),
                         'name' => 'E_NKAP_ACCOUNT_KEY',
                         'label' => $this->l('Consumer Key'),
                     ),
@@ -335,6 +349,8 @@ class E_nkap extends PaymentModule
                         'col' => 3,
                         'type' => 'text',
                         'name' => 'E_NKAP_ACCOUNT_SECRET',
+                        //'class' => 'password-class',
+                        'desc' => $this->l('Enter a valid Consumer Secret from enkap platform'),
                         'label' => $this->l('Consumer Secret'),
                     ),
                 ),
@@ -347,11 +363,11 @@ class E_nkap extends PaymentModule
 
     protected function getConfigFormValues()
     {
-        return array(
+        return [
             'E_NKAP_LIVE_MODE' => Configuration::get('E_NKAP_LIVE_MODE', true),
             'E_NKAP_ACCOUNT_KEY' => Configuration::get('E_NKAP_ACCOUNT_KEY'),
             'E_NKAP_ACCOUNT_SECRET' => Configuration::get('E_NKAP_ACCOUNT_SECRET'),
-        );
+        ];
     }
 
     protected function postProcess()
@@ -566,7 +582,11 @@ class E_nkap extends PaymentModule
         $order = new Order($params['id_order']);
         $en_payment = ENkapPaymentCart::getByIdCart($order->id_cart);
         if ($en_payment && is_array($en_payment)) {
-            $Url = $this->context->link->getModuleLink($this->name, 'validation', array('checkPayment' => 1, 'order_ref' => $en_payment['merchant_reference_id']), true);
+            $Url = $this->context->link->getModuleLink($this->name, 'validation',
+                [
+                    'checkPayment' => 1,
+                    'order_ref' => $en_payment['merchant_reference_id']
+                ], true);
 
             /** @var ActionsBarButtonsCollection $bar */
             $params['actions_bar_buttons_collection']->add(
@@ -577,10 +597,10 @@ class E_nkap extends PaymentModule
         }
     }
 
-    public function hookDisplayPaymentReturn($params)
+    public function hookDisplayPaymentReturn($params): ?string
     {
         if ($this->active === false || !isset($params['order'])) {
-            return;
+            return null;
         }
 
         $order = $params['order'];
