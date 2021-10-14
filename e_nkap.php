@@ -314,7 +314,7 @@ class E_nkap extends PaymentModule
         return $helper->generateForm(array($this->getConfigForm()));
     }
 
-    protected function getConfigForm()
+    protected function getConfigForm(): array
     {
         return array(
             'form' => array(
@@ -345,7 +345,7 @@ class E_nkap extends PaymentModule
                     array(
                         'col' => 3,
                         'type' => 'text',
-                        'desc' => $this->l('Enter a valid Consumer Key from enkap platform'),
+                        'desc' => $this->l('Enter a valid Consumer Key from SmobilPay platform'),
                         'name' => 'E_NKAP_ACCOUNT_KEY',
                         'label' => $this->l('Consumer Key'),
                     ),
@@ -353,8 +353,7 @@ class E_nkap extends PaymentModule
                         'col' => 3,
                         'type' => 'text',
                         'name' => 'E_NKAP_ACCOUNT_SECRET',
-                        //'class' => 'password-class',
-                        'desc' => $this->l('Enter a valid Consumer Secret from enkap platform'),
+                        'desc' => $this->l('Enter a valid Consumer Secret from SmobilPay platform'),
                         'label' => $this->l('Consumer Secret'),
                     ),
                 ),
