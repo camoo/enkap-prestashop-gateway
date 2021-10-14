@@ -25,6 +25,7 @@
  */
 
 use Enkap\OAuth\Model\CallbackUrl;
+use Enkap\OAuth\Model\Status;
 use Enkap\OAuth\Services\CallbackUrlService;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use PrestaShopBundle\Controller\Admin\Sell\Order\ActionsBarButton;
@@ -59,12 +60,14 @@ class E_nkap extends PaymentModule
         parent::__construct();
         // $this->installDb();
 
-        $this->displayName = $this->l('E-Nkap payment');
-        $this->description = $this->l('E-Nkap payment for Prestashop');
-
+        $this->displayName = $this->l('SmobilPay for e-commerce');
+        $this->description = $this->l('SmobilPay for e-commerce Prestashop Gateway');
+        $this->confirmUninstall = $this->trans('Are you sure you want to delete these details?', [], 'Modules.E_nkap.Shop');
         $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
+
         require_once dirname(__FILE__) . '/classes/ENkapPaymentCart.php';
     }
+
 
     public function getApiCurrency(): string
     {
@@ -92,7 +95,8 @@ class E_nkap extends PaymentModule
 
         $iso_code = Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT'));
 
-        if ($this->limited_countries && is_array($this->limited_countries) && !empty($this->limited_countries) && !in_array($iso_code, $this->limited_countries)) {
+        if ($this->limited_countries && is_array($this->limited_countries) && !empty($this->limited_countries) &&
+            !in_array($iso_code, $this->limited_countries)) {
             $this->_errors[] = $this->l('This module is not available in your country');
             return false;
         }
@@ -147,10 +151,10 @@ class E_nkap extends PaymentModule
             $order_state->name = array();
 
             foreach (Language::getLanguages() as $language) {
-                if (Tools::strtolower($language['iso_code']) == 'fr') {
-                    $order_state->name[$language['id_lang']] = 'En attente de validation paiement par E-Nkap';
+                if (Tools::strtolower($language['iso_code']) === 'fr') {
+                    $order_state->name[$language['id_lang']] = 'En attente de validation paiement par SmobilPay';
                 } else {
-                    $order_state->name[$language['id_lang']] = 'Waiting for E-Nkap payment validation';
+                    $order_state->name[$language['id_lang']] = 'Waiting for SmobilPay payment validation';
                 }
             }
 
@@ -180,9 +184,9 @@ class E_nkap extends PaymentModule
 
             foreach (Language::getLanguages() as $language) {
                 if (Tools::strtolower($language['iso_code']) == 'fr') {
-                    $order_state->name[$language['id_lang']] = 'Paiement par E-nkap money accepté';
+                    $order_state->name[$language['id_lang']] = 'Paiement par SmobilPay money accepté';
                 } else {
-                    $order_state->name[$language['id_lang']] = 'E-Nkap payment accepted';
+                    $order_state->name[$language['id_lang']] = 'SmobilPay payment accepted';
                 }
             }
 
@@ -278,7 +282,7 @@ class E_nkap extends PaymentModule
 
     public function getContent(): string
     {
-        if (((bool)Tools::isSubmit('submitE_nkapModule')) === true) {
+        if (Tools::isSubmit('submitE_nkapModule') === true) {
             $this->_html .= $this->postProcess();
         }
         $this->_html .= $this->renderForm();
@@ -404,7 +408,7 @@ class E_nkap extends PaymentModule
 
     public function hookPaymentReturn($params)
     {
-        if ($this->active == false) {
+        if ($this->active === false) {
             return;
         }
 
@@ -513,7 +517,7 @@ class E_nkap extends PaymentModule
         }
         $option = new PaymentOption();
         $option->setModuleName($this->name)
-            ->setCallToActionText($this->l('Pay with E-nkap'))
+            ->setCallToActionText($this->l('Pay with SmobilPay'))
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
             ->setAdditionalInformation($this->fetch('module:' . $this->name . '/views/templates/hook/ps_enkap_intro.tpl'));
 
@@ -578,14 +582,21 @@ class E_nkap extends PaymentModule
         return $this->hookActionGetAdminOrderButtons($params);
     }
 
+
     public function hookActionGetAdminOrderButtons(array $params)
     {
+
+        if (empty($params['actions_bar_buttons_collection'])) {
+            return;
+        }
+
         if (!isset($params['id_order'])) {
             return;
         }
         $order = new Order($params['id_order']);
         $en_payment = ENkapPaymentCart::getByIdCart($order->id_cart);
-        if ($en_payment && is_array($en_payment)) {
+        if (!empty($en_payment) && (empty($en_payment['status']) || in_array($en_payment['status'],
+                [Status::INITIALISED_STATUS, Status::IN_PROGRESS_STATUS, Status::CREATED_STATUS]))) {
             $Url = $this->context->link->getModuleLink($this->name, 'validation',
                 [
                     'checkPayment' => 1,
@@ -595,7 +606,7 @@ class E_nkap extends PaymentModule
             /** @var ActionsBarButtonsCollection $bar */
             $params['actions_bar_buttons_collection']->add(
                 new ActionsBarButton(
-                    'btn-secondary', ['href' => $Url, 'target' => '_blank'], $this->l('Check E-Nkap Payment status')
+                    'btn-secondary', ['href' => $Url], $this->l('Check SmobilPay Payment status')
                 )
             );
         }

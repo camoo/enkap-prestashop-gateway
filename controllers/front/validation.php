@@ -30,10 +30,14 @@ use Enkap\OAuth\Model\Order as EnKapOrder;
  */
 class E_nkapValidationModuleFrontController extends ModuleFrontController
 {
+    /**
+     * @throws PrestaShopException
+     * @throws PrestaShopDatabaseException
+     */
     public function postProcess()
     {
         if ($this->module->active === false) {
-            die;
+            throw new PrestaShopException('Module SmobilPay for e-commerce not activated');
         }
 
         $statusCheck = $this->checkPaymentStatus();
@@ -42,7 +46,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
             $message = $statusCheck === true ? $this->trans('Status updated successfully!', [], 'Modules.E_nkap.Shop') :
                 $this->trans('Status can not be updated!', [], 'Modules.E_nkap.Shop');
 
-            die($message);
+            Tools::redirect(Tools::secureReferrer($_SERVER['HTTP_REFERER'] ?? ''));
 
         }
 
@@ -105,7 +109,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
 
             $payment_status = (int)Configuration::get('PS_OS_E_NKAP');
             $module_name = $this->module->displayName;
-            $message = 'E-Nkap order created #' . $response->getOrderTransactionId();
+            $message = 'SmobilPay order created #' . $response->getOrderTransactionId();
             $this->module->validateOrder(
                 $cart_id,
                 $payment_status,
@@ -127,7 +131,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
             );
             Tools::redirect($response->getRedirectUrl());
         } catch (Throwable $e) {
-            die(Tools::displayError('E-Nkap Payment Error: ' . $e->getMessage()));
+            die(Tools::displayError('SmobilPay for e-commerce Payment Error: ' . $e->getMessage()));
         }
     }
 
@@ -149,7 +153,6 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
 
         $statusService = new StatusService($_key, $_secret, [], $isTestMode);
         $status = $statusService->getByTransactionId($payment['order_transaction_id']);
-
 
         $id_order_state = false;
         $extra_vars = array('transaction_id' => $payment['order_transaction_id']);
