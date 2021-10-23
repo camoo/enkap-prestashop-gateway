@@ -37,7 +37,7 @@ class E_nkapConfirmationModuleFrontController extends ModuleFrontController
             $customer = new Customer($cart->id_customer);
             Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$en_payment['id_cart'] . '&id_module=' . $this->module->id . '&id_order=' . (int)$en_payment['id_order'] . '&key=' . $customer->secure_key);
         } else {
-            echo Tools::displayError('E-Nkap payment not found on local shop');
+            echo Tools::displayError('SmobilPay payment not found on local shop');
         }
         exit;
     }

@@ -43,7 +43,7 @@ class E_nkap extends PaymentModule
 
     public function __construct()
     {
-        $this->name = 'e_nkap';
+        $this->name = 'smobilpay';
         $this->tab = 'payments_gateways';
         $this->version = '1.0.0';
         $this->author = 'Camoo Sarl';

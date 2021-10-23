@@ -26,7 +26,7 @@
 {if (isset($status) == true) && ($status == 'ok')}
 <h3>{l s='Your order on %s is complete.' sprintf=[$shop_name] d='Modules.E_nkap.Shop'}</h3>
 <p class="alert alert-success">
-    <strong>{l s='Your E-Nkap payment is saved and waiting for our partner confirmation' mod='izips_mobilemoney'}</strong>
+    <strong>{l s='Your SmobilPay payment is saved and waiting for our partner confirmation' d='Modules.E_nkap.Shop'}</strong>
 </p>
 <p>
     <dl>

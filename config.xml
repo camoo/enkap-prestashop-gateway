@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
-    <name>e_nkap</name>
+    <name>smobilpay</name>
     <displayName><![CDATA[SmobilPay for e-commerce]]></displayName>
     <version><![CDATA[1.0.0]]></version>
     <description><![CDATA[SmobilPay for e-commerce Prestashop Gateway]]></description>
