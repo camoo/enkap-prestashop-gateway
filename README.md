@@ -18,11 +18,12 @@ The usage of this plugin is completely free. You have to just have an SmobilPay 
 # Installation
 
 ## Auto installation and Manage the plugin
-1. In your PrestaShop Dashboard go to \"Modules\" -> \"Module manager\".
-2. Click on \"Upload Module\".
-3. Install the plugin by pressing the \"Select file\" link and import the zip-File from your computer.
-4. Activate the plugin by pressing the \"Activate\" button.
-5. On the Module manager search for \"SmobilPay\".
-6. Click on \"Configure\" to add your API credentials.
+1. Download the [smobilPay.zip file](https://github.com/camoo/enkap-prestashop-gateway/releases/download/1.0.0/smobilpay.zip)
+2. In your PrestaShop Dashboard go to \"Modules\" -> \"Module manager\".
+3. Click on \"Upload Module\".
+4. Install the plugin by pressing the \"Select file\" link and import the zip-File from your computer.
+5. Activate the plugin by pressing the \"Activate\" button.
+6. On the Module manager search for \"SmobilPay\".
+7. Click on \"Configure\" to add your API credentials.
 
 #### More details can be found on the [documentation website](https://support.enkap.cm)
