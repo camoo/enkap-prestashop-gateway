@@ -18,7 +18,7 @@ The usage of this plugin is completely free. You have to just have an SmobilPay 
 # Installation
 
 ## Auto installation and Manage the plugin
-1. Download the [smobilPay.zip file](https://github.com/camoo/enkap-prestashop-gateway/releases/download/1.0.0/smobilpay.zip)
+1. Download the [smobilPay.zip file](https://github.com/camoo/enkap-prestashop-gateway/releases/download/1.0.0/smobilpay.prestashop.zip)
 2. In your PrestaShop Dashboard go to \"Modules\" -> \"Module manager\".
 3. Click on \"Upload Module\".
 4. Install the plugin by pressing the \"Select file\" link and import the zip-File from your computer.
