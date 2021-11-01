@@ -41,6 +41,7 @@ class E_nkap extends PaymentModule
     protected $api_currency = 'XAF';
     protected $_html = '';
 
+
     public function __construct()
     {
         $this->name = 'e_nkap';

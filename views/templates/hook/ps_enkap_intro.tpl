@@ -18,5 +18,5 @@
  *}
 
 <section>
-    <p class="alert alert-info">{l s='Secured Payment with Enkap. Smobilpay for e-commerce' d='Modules.E_nkap.Shop'}</p>
+    <p class="alert alert-info">{l s='Secured Payment with Smobilpay for e-commerce' d='Modules.E_nkap.Shop'}</p>
 </section>
