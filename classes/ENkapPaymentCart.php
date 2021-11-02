@@ -16,9 +16,9 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- *  @author    Camoo Sarl <prestashop@camoo.sarl>
- *  @copyright 2021 Camoo Sarl
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @author    Camoo Sarl <prestashop@camoo.sarl>
+ * @copyright 2021 Camoo Sarl
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  */
 
 class ENkapPaymentCart extends ObjectModel
@@ -60,17 +60,22 @@ class ENkapPaymentCart extends ObjectModel
 
     public static function getIdByIdCart($id_cart)
     {
-        return Db::getInstance()->getValue('SELECT `id_enkap_payment` FROM `' . _DB_PREFIX_ . self::$definition['table'] . '` WHERE `id_cart` = ' . (int)$id_cart);
+        return Db::getInstance()->getValue(
+            'SELECT `id_enkap_payment` FROM `' . _DB_PREFIX_ . self::$definition['table'] .
+            '` WHERE `id_cart` = ' . (int)$id_cart
+        );
     }
 
     public static function getByIdCart($id_cart)
     {
-        return Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . self::$definition['table'] . '` WHERE `id_cart` = ' . (int)$id_cart);
+        return Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . self::$definition['table'] .
+            '` WHERE `id_cart` = ' . (int)$id_cart);
     }
 
     public static function getByMerchantReference($merchant_reference_id)
     {
-        return Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . self::$definition['table'] . '` WHERE `merchant_reference_id` = "' . $merchant_reference_id . '"');
+        return Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . self::$definition['table'] .
+            '` WHERE `merchant_reference_id` = "' . $merchant_reference_id . '"');
     }
 
     public static function applyStatusChange(string $status, string $transactionId): bool
@@ -91,13 +96,12 @@ class ENkapPaymentCart extends ObjectModel
     }
 
     public static function logPayment(
-        int $orderId,
-        int $cartId,
+        int    $orderId,
+        int    $cartId,
         string $merchantReferenceId,
         string $orderTransactionId,
         $amount
-    ): bool
-    {
+    ): bool {
         $insertData = [
             'id_cart' => $cartId,
             'id_order' => $orderId,

@@ -27,7 +27,7 @@
 use Enkap\OAuth\Model\Status;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class E_nkapNotificationModuleFrontController extends ModuleFrontController
+class EnkapNotificationModuleFrontController extends ModuleFrontController
 {
     /**
      * Do whatever you have to before redirecting the customer on the website of your payment processor.
@@ -65,21 +65,21 @@ class E_nkapNotificationModuleFrontController extends ModuleFrontController
         $order = new Order((int)$en_payment['id_order']);
 
         switch ($status) {
-            case Status::IN_PROGRESS_STATUS :
-            case Status::CREATED_STATUS :
-            case Status::INITIALISED_STATUS :
+            case Status::IN_PROGRESS_STATUS:
+            case Status::CREATED_STATUS:
+            case Status::INITIALISED_STATUS:
                 $id_order_state = (int)Configuration::get('PS_OS_E_NKAP');
                 break;
-            case Status::CONFIRMED_STATUS :
+            case Status::CONFIRMED_STATUS:
                 $id_order_state = (int)Configuration::get('PS_OS_E_NKAP_ACCEPTED');
                 break;
-            case Status::CANCELED_STATUS :
+            case Status::CANCELED_STATUS:
                 $id_order_state = (int)Configuration::get('PS_OS_CANCELED');
                 break;
-            case Status::FAILED_STATUS :
+            case Status::FAILED_STATUS:
                 $id_order_state = (int)Configuration::get('PS_OS_ERROR');
                 break;
-            default :
+            default:
                 break;
         }
 
@@ -97,15 +97,12 @@ class E_nkapNotificationModuleFrontController extends ModuleFrontController
                     $p->update();
                 }
             }
-
         }
+
         ENkapPaymentCart::applyStatusChange($status, $en_payment['order_transaction_id']);
         return new JsonResponse([
             'status' => 'OK',
             'message' => sprintf('Status Updated To %s', $status)
         ], 200);
-
     }
-
-
 }

@@ -35,19 +35,24 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class E_nkap extends PaymentModule
+class Enkap extends PaymentModule
 {
     protected $config_form = false;
     protected $api_currency = 'XAF';
-    protected $_html = '';
-
+    protected $htmlContent = '';
+    /**
+     * @var string[]
+     */
+    private $limited_currencies;
 
     public function __construct()
     {
         $this->name = 'e_nkap';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
         $this->author = 'Camoo Sarl';
+
+        $this->version = '1.0.0';
+        $this->author_uri = 'https://www.enkap.cm';
 
         $this->controllers = ['confirmation', 'validation', 'notification'];
         $this->need_instance = 0;
@@ -59,12 +64,31 @@ class E_nkap extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         parent::__construct();
-        // $this->installDb();
 
-        $this->displayName = $this->l('SmobilPay for e-commerce');
-        $this->description = $this->l('SmobilPay for e-commerce Prestashop Gateway');
-        $this->confirmUninstall = $this->trans('Are you sure you want to delete these details?', [], 'Modules.E_nkap.Shop');
+        $this->displayName = $this->trans('SmobilPay for e-commerce', [], 'Modules.E_nkap.Admin');
+        $this->description = $this->trans('SmobilPay for e-commerce Prestashop Gateway', [], 'Modules.E_nkap.Admin');
+        $this->confirmUninstall = $this->trans(
+            'Are you sure you want to delete these details?',
+            [],
+            'Modules.E_nkap.Shop'
+        );
         $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
+
+        $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
+        $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
+
+        if (empty($_key) || empty($_secret)) {
+            $this->warning = $this->trans(
+                'The "Consumer Key" and "Consumer secret" fields must be configured before using this module.',
+                [],
+                'Modules.E_nkap.Admin'
+            );
+        }
+
+        /* Backward compatibility */
+        if (_PS_VERSION_ < '1.5') {
+            require(_PS_MODULE_DIR_ . $this->name . '/backward_compatibility/backward.php');
+        }
 
         require_once dirname(__FILE__) . '/classes/ENkapPaymentCart.php';
     }
@@ -77,7 +101,6 @@ class E_nkap extends PaymentModule
 
     public function getLanguageKey($langId): string
     {
-
         $iso_code = Language::getIsoById($langId);
 
         if (empty($iso_code)) {
@@ -185,7 +208,7 @@ class E_nkap extends PaymentModule
 
             foreach (Language::getLanguages() as $language) {
                 if (Tools::strtolower($language['iso_code']) == 'fr') {
-                    $order_state->name[$language['id_lang']] = 'Paiement par SmobilPay money accepté';
+                    $order_state->name[$language['id_lang']] = 'Paiement par SmobilPay accepté';
                 } else {
                     $order_state->name[$language['id_lang']] = 'SmobilPay payment accepted';
                 }
@@ -216,50 +239,37 @@ class E_nkap extends PaymentModule
         return true;
     }
 
+    private function displayAdminInfo()
+    {
+        return $this->display(__FILE__, './views/templates/hook/infos.tpl');
+    }
+
     public function generateReferenceID()
     {
         // Version 4 UUIDs generation
         if (version_compare(PHP_VERSION, '7.0.0', '<')) {
-            return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-
-                // 32 bits for "time_low"
-                mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-
-                // 16 bits for "time_mid"
+            return sprintf(
+                '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
                 mt_rand(0, 0xffff),
-
-                // 16 bits for "time_hi_and_version",
-                // four most significant bits holds version number 4
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff),
                 mt_rand(0, 0x0fff) | 0x4000,
-
-                // 16 bits, 8 bits for "clk_seq_hi_res",
-                // 8 bits for "clk_seq_low",
-                // two most significant bits holds zero and one for variant DCE1.1
                 mt_rand(0, 0x3fff) | 0x8000,
-
-                // 48 bits for "node"
-                mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff)
             );
         } else {
-            return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-
-                // 32 bits for "time_low"
-                random_int(0, 0xffff), random_int(0, 0xffff),
-
-                // 16 bits for "time_mid"
+            return sprintf(
+                '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
                 random_int(0, 0xffff),
-
-                // 16 bits for "time_hi_and_version",
-                // four most significant bits holds version number 4
+                random_int(0, 0xffff),
+                random_int(0, 0xffff),
                 random_int(0, 0x0fff) | 0x4000,
-
-                // 16 bits, 8 bits for "clk_seq_hi_res",
-                // 8 bits for "clk_seq_low",
-                // two most significant bits holds zero and one for variant DCE1.1
                 random_int(0, 0x3fff) | 0x8000,
-
-                // 48 bits for "node"
-                random_int(0, 0xffff), random_int(0, 0xffff), random_int(0, 0xffff)
+                random_int(0, 0xffff),
+                random_int(0, 0xffff),
+                random_int(0, 0xffff)
             );
         }
     }
@@ -276,7 +286,8 @@ class E_nkap extends PaymentModule
         ];
         foreach ($templates as $template) {
             foreach ($formats as $f) {
-                @copy(_PS_MODULE_DIR_ . $this->name . '/mails/' . $template . '.' . $f, _PS_MAIL_DIR_ . $lang_iso . '/' . $template . '.' . $f);
+                @copy(_PS_MODULE_DIR_ . $this->name .
+                    '/mails/' . $template . '.' . $f, _PS_MAIL_DIR_ . $lang_iso . '/' . $template . '.' . $f);
             }
         }
     }
@@ -284,10 +295,11 @@ class E_nkap extends PaymentModule
     public function getContent(): string
     {
         if (Tools::isSubmit('submitE_nkapModule') === true) {
-            $this->_html .= $this->postProcess();
+            $this->htmlContent .= $this->postProcess();
         }
-        $this->_html .= $this->renderForm();
-        return $this->_html;
+        $this->htmlContent .= $this->displayAdminInfo();
+        $this->htmlContent .= $this->renderForm();
+        return $this->htmlContent;
     }
 
     protected function renderForm(): string
@@ -326,40 +338,48 @@ class E_nkap extends PaymentModule
                 'input' => array(
                     array(
                         'type' => 'switch',
-                        'label' => $this->l('Live mode'),
+                        'label' => $this->trans('Live mode', [], 'Modules.E_nkap.Admin'),
                         'name' => 'E_NKAP_LIVE_MODE',
                         'is_bool' => true,
-                        'desc' => $this->l('Use this module in live mode'),
+                        'desc' => $this->trans('Use this module in live mode', [], 'Modules.E_nkap.Admin'),
                         'values' => array(
                             array(
                                 'id' => 'active_on',
                                 'value' => true,
-                                'label' => $this->l('Enabled')
+                                'label' => $this->trans('Enabled', [], 'Modules.E_nkap.Admin')
                             ),
                             array(
                                 'id' => 'active_off',
                                 'value' => false,
-                                'label' => $this->l('Disabled')
+                                'label' => $this->trans('Disabled', [], 'Modules.E_nkap.Admin')
                             )
                         ),
                     ),
                     array(
                         'col' => 3,
                         'type' => 'text',
-                        'desc' => $this->l('Enter a valid Consumer Key from SmobilPay platform'),
+                        'desc' => $this->trans(
+                            'Enter a valid Consumer Key from SmobilPay platform',
+                            [],
+                            'Modules.E_nkap.Admin'
+                        ),
                         'name' => 'E_NKAP_ACCOUNT_KEY',
-                        'label' => $this->l('Consumer Key'),
+                        'label' => $this->trans('Consumer Key', [], 'Modules.E_nkap.Admin'),
                     ),
                     array(
                         'col' => 3,
                         'type' => 'text',
                         'name' => 'E_NKAP_ACCOUNT_SECRET',
-                        'desc' => $this->l('Enter a valid Consumer Secret from SmobilPay platform'),
-                        'label' => $this->l('Consumer Secret'),
+                        'desc' => $this->trans(
+                            'Enter a valid Consumer Secret from SmobilPay platform',
+                            [],
+                            'Modules.E_nkap.Admin'
+                        ),
+                        'label' => $this->trans('Consumer Secret', [], 'Modules.E_nkap.Admin'),
                     ),
                 ),
                 'submit' => array(
-                    'title' => $this->l('Save'),
+                    'title' => $this->trans('Save', [], 'Modules.E_nkap.Admin'),
                 ),
             ),
         );
@@ -381,10 +401,11 @@ class E_nkap extends PaymentModule
             Configuration::updateValue($key, Tools::getValue($key));
         }
         if ($this->setReturnUrls()) {
-
             return $this->displayConfirmation($this->l('Settings updated successfully!'));
         }
-        return $this->displayError($this->l('Keys could not be setup properly. Please make sure that your Consumers keys pairs are valid'));
+        return $this->displayError(
+            $this->l('Keys could not be setup properly. Please make sure that your Consumers keys pairs are valid')
+        );
     }
 
     protected function setReturnUrls(): bool
@@ -517,13 +538,13 @@ class E_nkap extends PaymentModule
         }
         $option = new PaymentOption();
         $option->setModuleName($this->name)
-            ->setCallToActionText($this->l('Pay with SmobilPay'))
+            ->setCallToActionText($this->trans('Pay with SmobilPay', [], 'Modules.E_nkap.Admin'))
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
-            ->setAdditionalInformation($this->fetch('module:' . $this->name . '/views/templates/hook/ps_enkap_intro.tpl'));
+            ->setAdditionalInformation(
+                $this->fetch('module:' . $this->name . '/views/templates/hook/ps_enkap_intro.tpl')
+            );
 
-        return [
-            $option
-        ];
+        return [$option];
     }
 
     public function checkCurrency($cart)
@@ -567,11 +588,15 @@ class E_nkap extends PaymentModule
             $this->context->smarty->assign(
                 array(
                     'en_payment' => $en_payment,
-                    'link' => $this->context->link->getModuleLink($this->name, 'validation',
+                    'link' => $this->context->link->getModuleLink(
+                        $this->name,
+                        'validation',
                         [
                             'checkPayment' => 1,
                             'order_ref' => $en_payment['merchant_reference_id']
-                        ], true))
+                        ],
+                        true
+                    ))
             );
             return $this->fetch('module:' . $this->name . '/views/templates/hook/admin-order.tpl');
         }
@@ -585,7 +610,6 @@ class E_nkap extends PaymentModule
 
     public function hookActionGetAdminOrderButtons(array $params)
     {
-
         if (empty($params['actions_bar_buttons_collection'])) {
             return;
         }
@@ -595,18 +619,26 @@ class E_nkap extends PaymentModule
         }
         $order = new Order($params['id_order']);
         $en_payment = ENkapPaymentCart::getByIdCart($order->id_cart);
-        if (!empty($en_payment) && (empty($en_payment['status']) || in_array($en_payment['status'],
-                [Status::INITIALISED_STATUS, Status::IN_PROGRESS_STATUS, Status::CREATED_STATUS]))) {
-            $Url = $this->context->link->getModuleLink($this->name, 'validation',
+        if (!empty($en_payment) && (empty($en_payment['status']) || in_array(
+            $en_payment['status'],
+            [Status::INITIALISED_STATUS, Status::IN_PROGRESS_STATUS, Status::CREATED_STATUS]
+        ))) {
+            $Url = $this->context->link->getModuleLink(
+                $this->name,
+                'validation',
                 [
                     'checkPayment' => 1,
                     'order_ref' => $en_payment['merchant_reference_id']
-                ], true);
+                ],
+                true
+            );
 
             /** @var ActionsBarButtonsCollection $bar */
             $params['actions_bar_buttons_collection']->add(
                 new ActionsBarButton(
-                    'btn-secondary', ['href' => $Url], $this->l('Check SmobilPay Payment status')
+                    'btn-secondary',
+                    ['href' => $Url],
+                    $this->l('Check SmobilPay Payment status')
                 )
             );
         }

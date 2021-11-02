@@ -1,9 +1,4 @@
 <?php
-
-use Enkap\OAuth\Services\OrderService;
-use Enkap\OAuth\Services\StatusService;
-use Enkap\OAuth\Model\Order as EnKapOrder;
-
 /**
  * 2007-2021 PrestaShop
  *
@@ -28,7 +23,12 @@ use Enkap\OAuth\Model\Order as EnKapOrder;
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-class E_nkapValidationModuleFrontController extends ModuleFrontController
+
+use Enkap\OAuth\Services\OrderService;
+use Enkap\OAuth\Services\StatusService;
+use Enkap\OAuth\Model\Order as EnKapOrder;
+
+class EnkapValidationModuleFrontController extends ModuleFrontController
 {
     /**
      * @throws PrestaShopException
@@ -41,13 +41,12 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
         }
 
         $statusCheck = $this->checkPaymentStatus();
-        if (null !== $statusCheck) {
 
+        if (null !== $statusCheck) {
             $message = $statusCheck === true ? $this->trans('Status updated successfully!', [], 'Modules.E_nkap.Shop') :
                 $this->trans('Status can not be updated!', [], 'Modules.E_nkap.Shop');
 
             Tools::redirect(Tools::secureReferrer($_SERVER['HTTP_REFERER'] ?? ''));
-
         }
 
         $authorized = false;
@@ -93,7 +92,7 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
                 'itemId' => (int)$item['id_product'],
                 'particulars' => $item['name'],
                 'unitCost' => (float)$item['price'],
-                'subTotal' => (float)$item['price'],
+                'subTotal' => (float)$item['price'] * (int)$item['cart_quantity'],
                 'quantity' => $item['cart_quantity']
             ];
         }
@@ -182,10 +181,9 @@ class E_nkapValidationModuleFrontController extends ModuleFrontController
                     $p->update();
                 }
             }
-
         }
+
         ENkapPaymentCart::applyStatusChange($status->getCurrent(), $extra_vars['transaction_id']);
         return true;
     }
-
 }

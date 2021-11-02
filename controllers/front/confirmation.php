@@ -23,7 +23,8 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-class E_nkapConfirmationModuleFrontController extends ModuleFrontController
+
+class EnkapConfirmationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
@@ -35,7 +36,9 @@ class E_nkapConfirmationModuleFrontController extends ModuleFrontController
         if (!empty($en_payment) && is_array($en_payment)) {
             $cart = new Cart((int)$en_payment['id_cart']);
             $customer = new Customer($cart->id_customer);
-            Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$en_payment['id_cart'] . '&id_module=' . $this->module->id . '&id_order=' . (int)$en_payment['id_order'] . '&key=' . $customer->secure_key);
+            Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$en_payment['id_cart'] .
+                '&id_module=' . $this->module->id . '&id_order=' . (int)$en_payment['id_order'] .
+                '&key=' . $customer->secure_key);
         } else {
             echo Tools::displayError('SmobilPay payment not found on local shop');
         }
