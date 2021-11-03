@@ -36,14 +36,14 @@
         <dd><span class="reference"><strong>{$reference|escape:'html':'UTF-8'}</strong></span></dd>
     </dl>
     {l s='An email has been sent with this information.' d='Modules.E_nkap.Shop'}
-    <br /><br />{l s='If you have questions, comments or concerns, please contact our' d='Modules.E_nkap.Shop'} <a href="{$urls.pages.contact}">{l s='expert customer support team.' d='Modules.E_nkap.Shop'}</a>
+    <br /><br />{l s='If you have questions, comments or concerns, please contact our' d='Modules.E_nkap.Shop'} <a href="{$urls.pages.contact|escape:'htmlall':'UTF-8'}">{l s='expert customer support team.' d='Modules.E_nkap.Shop'}</a>
 </p>
 {else}
 <h3>{l s='Your order on %s has not been accepted.' sprintf=[$shop_name] d='Modules.E_nkap.Shop'}</h3>
 <p>
 	<br />- {l s='Reference' d='Modules.E_nkap.Shop'} <span class="reference"> <strong>{$reference|escape:'html':'UTF-8'}</strong></span>
 	<br /><br />{l s='Please, try to order again.' d='Modules.E_nkap.Shop'}
-	<br /><br />{l s='If you have questions, comments or concerns, please contact our' d='Modules.E_nkap.Shop'} <a href="{$urls.pages.contact}">{l s='expert customer support team.' d='Modules.E_nkap.Shop'}</a>
+	<br /><br />{l s='If you have questions, comments or concerns, please contact our' d='Modules.E_nkap.Shop'} <a href="{$urls.pages.contact|escape:'htmlall':'UTF-8'}">{l s='expert customer support team.' d='Modules.E_nkap.Shop'}</a>
 </p>
 {/if}
 <hr />
