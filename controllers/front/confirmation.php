@@ -28,7 +28,7 @@ class EnkapConfirmationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        if ((Tools::isSubmit('order_ref') == false) || (Tools::isSubmit('status') == false)) {
+        if ((Tools::isSubmit('order_ref') == false) || (Tools::isSubmit('status') === false)) {
             return false;
         }
         $merchant_reference_id = Tools::getValue('order_ref');

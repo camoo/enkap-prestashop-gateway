@@ -75,7 +75,7 @@ class ENkapPaymentCart extends ObjectModel
     public static function getByMerchantReference($merchant_reference_id)
     {
         return Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . self::$definition['table'] .
-            '` WHERE `merchant_reference_id` = "' . $merchant_reference_id . '"');
+            '` WHERE `merchant_reference_id` = "' . pSQL($merchant_reference_id) . '"');
     }
 
     public static function applyStatusChange(string $status, string $transactionId): bool
@@ -83,15 +83,15 @@ class ENkapPaymentCart extends ObjectModel
         $remoteIp = Tools::getRemoteAddr();
         $setData = [
             'status_date' => date('Y-m-d H:i:s'),
-            'status' => Tools::safeOutput($status)
+            'status' => pSQL($status)
         ];
         if ($remoteIp) {
-            $setData['remote_ip'] = Tools::safeOutput($remoteIp);
+            $setData['remote_ip'] = pSQL($remoteIp);
         }
         return Db::getInstance()->update(
             self::$definition['table'],
             $setData,
-            "order_transaction_id = '" . Tools::safeOutput($transactionId) . "'"
+            "order_transaction_id = '" . pSQL($transactionId) . "'"
         );
     }
 
@@ -105,8 +105,8 @@ class ENkapPaymentCart extends ObjectModel
         $insertData = [
             'id_cart' => $cartId,
             'id_order' => $orderId,
-            'order_transaction_id' => Tools::safeOutput($orderTransactionId),
-            'merchant_reference_id' => Tools::safeOutput($merchantReferenceId),
+            'order_transaction_id' => pSQL($orderTransactionId),
+            'merchant_reference_id' => pSQL($merchantReferenceId),
             'order_total' => $amount
         ];
 
