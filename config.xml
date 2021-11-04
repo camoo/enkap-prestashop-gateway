@@ -2,7 +2,7 @@
 <module>
     <name>e_nkap</name>
     <displayName><![CDATA[SmobilPay for e-commerce]]></displayName>
-    <version><![CDATA[1.0.0]]></version>
+    <version><![CDATA[1.0.1]]></version>
     <description><![CDATA[SmobilPay for e-commerce Prestashop Gateway]]></description>
     <author><![CDATA[Camoo Sarl]]></author><author_uri><![CDATA[https://www.enkap.cm]]></author_uri>
     <tab><![CDATA[payments_gateways]]></tab>

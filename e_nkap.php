@@ -51,7 +51,7 @@ class E_Nkap extends PaymentModule
         $this->tab = 'payments_gateways';
         $this->author = 'Camoo Sarl';
 
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author_uri = 'https://www.enkap.cm';
 
         $this->controllers = ['confirmation', 'validation', 'notification'];
