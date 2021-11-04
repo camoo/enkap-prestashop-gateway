@@ -99,7 +99,7 @@ class EnkapValidationModuleFrontController extends ModuleFrontController
 
         $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
         $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
-        $isTestMode = !empty(Configuration::get('E_NKAP_LIVE_MODE'));
+        $isTestMode = empty(Configuration::get('E_NKAP_LIVE_MODE'));
         try {
             $orderService = new OrderService($_key, $_secret, [], $isTestMode);
             $order = $orderService->loadModel(EnKapOrder::class);
@@ -148,7 +148,7 @@ class EnkapValidationModuleFrontController extends ModuleFrontController
 
         $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
         $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
-        $isTestMode = !empty(Configuration::get('E_NKAP_LIVE_MODE'));
+        $isTestMode = empty(Configuration::get('E_NKAP_LIVE_MODE'));
 
         $statusService = new StatusService($_key, $_secret, [], $isTestMode);
         $status = $statusService->getByTransactionId($payment['order_transaction_id']);

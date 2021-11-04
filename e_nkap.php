@@ -35,7 +35,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class Enkap extends PaymentModule
+class E_Nkap extends PaymentModule
 {
     protected $config_form = false;
     protected $api_currency = 'XAF';
@@ -112,10 +112,6 @@ class Enkap extends PaymentModule
 
     public function install()
     {
-        if (extension_loaded('curl') === false) {
-            $this->_errors[] = $this->l('You have to enable the cURL extension on your server to install this module');
-            return false;
-        }
 
         $iso_code = Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT'));
 
@@ -412,7 +408,8 @@ class Enkap extends PaymentModule
     {
         $_key = Configuration::get('E_NKAP_ACCOUNT_KEY');
         $_secret = Configuration::get('E_NKAP_ACCOUNT_SECRET');
-        $isTestMode = !empty(Configuration::get('E_NKAP_LIVE_MODE'));
+        $isTestMode = empty(Configuration::get('E_NKAP_LIVE_MODE'));
+
         $setup = new CallbackUrlService($_key, $_secret, [], $isTestMode);
 
         /** @var CallbackUrl $callBack */
