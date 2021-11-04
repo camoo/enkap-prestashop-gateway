@@ -28,7 +28,7 @@ use Enkap\OAuth\Services\OrderService;
 use Enkap\OAuth\Services\StatusService;
 use Enkap\OAuth\Model\Order as EnKapOrder;
 
-class EnkapValidationModuleFrontController extends ModuleFrontController
+class E_NkapValidationModuleFrontController extends ModuleFrontController
 {
     /**
      * @throws PrestaShopException

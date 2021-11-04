@@ -24,7 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-class EnkapConfirmationModuleFrontController extends ModuleFrontController
+class E_NkapConfirmationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {

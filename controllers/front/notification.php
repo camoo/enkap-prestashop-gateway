@@ -27,7 +27,7 @@
 use Enkap\OAuth\Model\Status;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class EnkapNotificationModuleFrontController extends ModuleFrontController
+class E_NkapNotificationModuleFrontController extends ModuleFrontController
 {
     /**
      * Do whatever you have to before redirecting the customer on the website of your payment processor.

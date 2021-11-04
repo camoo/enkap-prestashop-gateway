@@ -32,7 +32,7 @@
             <span>{l s='Payment transaction ID' d='Modules.E_nkap.Shop'}: <strong>{$en_payment.order_transaction_id|escape:'html':'UTF-8'}</strong></span><br>
             <span>{l s='Payment status' d='Modules.E_nkap.Shop'}: <strong>{if empty($en_payment.status)}{l s='Pending' d='Modules.E_nkap.Shop'}{else}{$en_payment.status|escape:'html':'UTF-8'}{/if}</strong></span>
         </p>
-        {if {$en_payment.status}|in_array:['PENDING', 'IN_PROGRESS'] || empty($en_payment.status)}
+        {if {$en_payment.status}|in_array:['PENDING', 'IN_PROGRESS', 'INITIALISED', 'CREATED'] || empty($en_payment.status)}
             <p>
                 <a class="btn btn-primary" href="{$link|escape:'htmlall':'UTF-8'}">{l s='Check Payment status' d='Modules.E_nkap.Shop'}</a>
             </p>

@@ -82,16 +82,18 @@ class ENkapPaymentCart extends ObjectModel
     {
         $remoteIp = Tools::getRemoteAddr();
         $setData = [
-            'status_date' => date('Y-m-d H:i:s'),
+            'date_status' => date('Y-m-d H:i:s'),
             'status' => pSQL($status)
         ];
         if ($remoteIp) {
             $setData['remote_ip'] = pSQL($remoteIp);
         }
+
         return Db::getInstance()->update(
             self::$definition['table'],
             $setData,
-            "order_transaction_id = '" . pSQL($transactionId) . "'"
+            '`order_transaction_id` = "'.pSQL($transactionId) . '"',
+            1
         );
     }
 
